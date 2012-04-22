@@ -44,6 +44,7 @@ our %IRSSI = (
     name        => 'prowl',
     description => 'Send Prowl notifications from Irssi',
     license     => '2-clause BSD',
+    url         => 'https://raw.github.com/henrikbrixandersen/irssi-prowl/master/prowl.pl',
     );
 
 my $ws;
