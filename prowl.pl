@@ -47,7 +47,7 @@ our %IRSSI = (
     url         => 'https://raw.github.com/henrikbrixandersen/irssi-prowl/master/prowl.pl',
     );
 
-my $ws;
+my $prowl;
 
 Irssi::settings_add_str('prowl', 'prowl_apikey', '');
 Irssi::signal_add('setup changed' => 'setup_changed_handler');
@@ -57,15 +57,15 @@ sub setup_changed_handler {
     my $apikey = Irssi::settings_get_str('prowl_apikey');
 
     if ($apikey) {
-        $ws = WebService::Prowl->new(apikey => $apikey);
+        $prowl = WebService::Prowl->new(apikey => $apikey);
 
-        if ($ws->verify) {
+        if ($prowl->verify) {
             Irssi::signal_add('print text' => 'print_text_handler');
         } else {
             Irssi::print('Invalid Prowl API key, use \'/set prowl_apikey\' to set a valid key',
                          MSGLEVEL_CLIENTERROR);
             Irssi::signal_remove('print text' => 'print_text_handler');
-            $ws = undef;
+            $prowl = undef;
         }
     }
 }
@@ -88,8 +88,8 @@ sub print_text_handler {
 sub prowl {
     my ($event, $text) = @_;
 
-    if ($ws) {
-        $ws->add(application => 'Irssi', event => $event, description => $text);
+    if ($prowl) {
+        $prowl->add(application => 'Irssi', event => $event, description => $text);
     } else {
         Irssi::print('Invalid Prowl API key, use \'/set prowl_apikey\' to set a valid key',
                      MSGLEVEL_CLIENTERROR);
