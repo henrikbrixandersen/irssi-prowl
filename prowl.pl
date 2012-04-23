@@ -29,14 +29,12 @@ use Irssi;
 use WebService::Prowl;
 
 # TODO:
-# - customizable prowl levels
 # - customizable URL support
 # - on/off/auto support
 # - async $prowl->verify -- example at https://github.com/shabble/irssi-scripts/blob/master/feature-tests/pipes.pl
-# - $prowl->add return value check
 # - theme support for prowl event strings
 
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 our %IRSSI = (
     authors     => 'Henrik Brix Andersen',
     contact     => 'henrik@brixandersen.dk',
@@ -46,16 +44,20 @@ our %IRSSI = (
     url         => 'https://raw.github.com/henrikbrixandersen/irssi-prowl/master/prowl.pl',
     );
 
-my $prowl;
-my %config;
+my $prowl = WebService::Prowl->new;;
+my %config = ( apikey => '' );
 
 # Settings
 Irssi::settings_add_str('prowl', 'prowl_apikey', '');
 Irssi::settings_add_bool('prowl', 'prowl_debug', 0);
+Irssi::settings_add_int('prowl', 'prowl_priority_msgs', 0);
+Irssi::settings_add_int('prowl', 'prowl_priority_hilight', 0);
+Irssi::settings_add_int('prowl', 'prowl_priority_cmd', 0);
 
 # Signals
 Irssi::signal_add('setup changed' => 'setup_changed_handler');
 setup_changed_handler();
+Irssi::signal_add('print text' => 'print_text_handler');
 
 # Commands
 Irssi::command_bind('help', 'help_command_handler');
@@ -63,21 +65,24 @@ Irssi::command_bind('prowl', 'prowl_command_handler');
 Irssi::command_set_options('prowl', '-url @priority');
 
 sub setup_changed_handler {
-    $config{apikey} = Irssi::settings_get_str('prowl_apikey');
     $config{debug} = Irssi::settings_get_bool('prowl_debug');
+    $config{priority_msgs} = Irssi::settings_get_int('prowl_priority_msgs');
+    $config{priority_hilight} = Irssi::settings_get_int('prowl_priority_hilight');
+    $config{priority_cmd} = Irssi::settings_get_int('prowl_priority_cmd');
 
-    if ($config{apikey}) {
-        $prowl = WebService::Prowl->new(apikey => $config{apikey});
-
-        if ($prowl->verify) {
-            Irssi::signal_add('print text' => 'print_text_handler');
-        } else {
-            Irssi::print('Invalid Prowl API key, use \'/set prowl_apikey\' to set a valid key',
-                         MSGLEVEL_CLIENTERROR);
-            Irssi::signal_remove('print text' => 'print_text_handler');
-            $prowl = undef;
+    my $apikey = Irssi::settings_get_str('prowl_apikey');
+    if ($apikey) {
+        if ($apikey ne $config{apikey}) {
+            $prowl = WebService::Prowl->new(apikey => $apikey);
+            if (!$prowl->verify) {
+                Irssi::print('Invalid Prowl API key, use \'/set prowl_apikey\' to set a valid key',
+                             MSGLEVEL_CLIENTERROR);
+            }
         }
+    } else {
+        $prowl = undef;
     }
+    $config{apikey} = $apikey;
 }
 
 sub print_text_handler {
@@ -87,9 +92,11 @@ sub print_text_handler {
     my $target = $dest->{target};
 
     if ($level & MSGLEVEL_MSGS) {
-        prowl("Private Message from $target", $stripped) if $server->{usermode_away};
+        prowl("Private Message from $target", $stripped, $config{priority_msgs})
+            if $server->{usermode_away};
     } elsif ($level & MSGLEVEL_HILIGHT && !($level & MSGLEVEL_NOHILIGHT)) {
-        prowl("Hilighted in $target", $stripped) if $server->{usermode_away};
+        prowl("Hilighted in $target", $stripped, $config{priority_hilight})
+            if $server->{usermode_away};
     }
 }
 
@@ -113,6 +120,8 @@ sub prowl_command_handler {
         my $args = $options[0];
         my $text = $options[1];
 
+        $args->{priority} = $config{priority_cmd} unless exists $args->{priority};
+
         if ($text) {
             prowl('Manual Message', $text, $args->{priority}, $args->{url});
         } else {
@@ -125,18 +134,19 @@ sub prowl_command_handler {
 sub prowl {
     my ($event, $description, $priority, $url) = @_;
 
-    if ($prowl) {
-        my %options = (application => 'Irssi', event => $event, description => $description);
-        $options{priority} = $priority if defined $priority;
-        $options{url} = $url if defined $url;
+    my %options = (application => 'Irssi', event => $event, description => $description);
+    $options{priority} = $priority if defined $priority;
+    $options{url} = $url if defined $url;
 
-        if ($config{debug}) {
-            my $debuginfo = join(', ', map { "$_ => '$options{$_}'" } sort keys %options);
-            Irssi::print("Sending Prowl notication: $debuginfo", MSGLEVEL_CLIENTCRAP);
-        }
-        $prowl->add(%options);
+    if ($config{debug}) {
+        my $debuginfo = join(', ', map { "$_ => '$options{$_}'" } sort keys %options);
+        Irssi::print("Sending Prowl notication: $debuginfo", MSGLEVEL_CLIENTCRAP);
+    }
+
+    if ($config{apikey}) {
+        Irssi::print('Error sending Prowl notificaton: ' . $prowl->error) unless $prowl->add(%options);
     } else {
-        Irssi::print('Invalid Prowl API key, use \'/set prowl_apikey\' to set a valid key',
+        Irssi::print('Prowl API key not set, use \'/set prowl_apikey\' to set a valid key',
                      MSGLEVEL_CLIENTERROR);
     }
 }
