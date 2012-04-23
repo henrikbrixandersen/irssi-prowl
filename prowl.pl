@@ -87,10 +87,10 @@ sub print_text_handler {
 }
 
 sub prowl {
-    my ($event, $text) = @_;
+    my ($event, $description) = @_;
 
     if ($prowl) {
-        $prowl->add(application => 'Irssi', event => $event, description => $text);
+        $prowl->add(application => 'Irssi', event => $event, description => $description);
     } else {
         Irssi::print('Invalid Prowl API key, use \'/set prowl_apikey\' to set a valid key',
                      MSGLEVEL_CLIENTERROR);
