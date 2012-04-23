@@ -33,8 +33,8 @@ use WebService::Prowl;
 # - customizable prowl levels
 # - customizable URL support
 # - on/off/auto support
-# - async $ws->verify -- example at https://github.com/shabble/irssi-scripts/blob/master/feature-tests/pipes.pl
-# - $ws->add return value check
+# - async $prowl->verify -- example at https://github.com/shabble/irssi-scripts/blob/master/feature-tests/pipes.pl
+# - $prowl->add return value check
 # - respond to /help prowl -- example at https://github.com/shabble/irssi-docs/wiki/Guide
 # - theme support for prowl event strings
 
