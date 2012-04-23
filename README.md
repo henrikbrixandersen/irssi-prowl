@@ -8,7 +8,8 @@
 * Notifications on all hilights when away
 * Notifications on private messages when away
 * Notifications on private actions (``/me``) when away
-* Manual notifications using ``/prowl [-url <url>] [-priority <priority>] <text>``
+* Manual notifications using the ``/prowl`` command
+* Customizable Prowl priority levels
 
 ## Installing
 
@@ -33,9 +34,19 @@ To activate the script, run the following commands in Irssi:
     /set prowl_apikey 0123456789abcdef0123456789abcdef01234567
     /save
 
-You can manually send Prowl notifications using the following command:
+Prowl notifications can be sent manually using the ``/prowl`` command:
 
-    /prowl [-url <url>] [-priority <priority>] <text>
+    /help prowl
+    /prowl Hello, world
+    /prowl -url https://github.com/henrikbrixandersen/irssi-prowl -priority 2 Check out this cool irssi-prowl script!
+
+To change the priority of the Prowl notifications for private
+messages, hilights and the default priority for the ``/prowl`` command,
+use the following settings:
+
+    /set prowl_priority_msgs 1
+    /set prowl_priority_hilight 0
+    /set prowl_priority_cmd -2
 
 To assist in debugging, turn on the following setting:
 
