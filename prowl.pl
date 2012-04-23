@@ -47,9 +47,11 @@ our %IRSSI = (
     );
 
 my $prowl;
+my %config;
 
 # Settings
 Irssi::settings_add_str('prowl', 'prowl_apikey', '');
+Irssi::settings_add_bool('prowl', 'prowl_debug', 0);
 
 # Signals
 Irssi::signal_add('setup changed' => 'setup_changed_handler');
@@ -61,10 +63,11 @@ Irssi::command_bind('prowl', 'prowl_command_handler');
 Irssi::command_set_options('prowl', '-url @priority');
 
 sub setup_changed_handler {
-    my $apikey = Irssi::settings_get_str('prowl_apikey');
+    $config{apikey} = Irssi::settings_get_str('prowl_apikey');
+    $config{debug} = Irssi::settings_get_bool('prowl_debug');
 
-    if ($apikey) {
-        $prowl = WebService::Prowl->new(apikey => $apikey);
+    if ($config{apikey}) {
+        $prowl = WebService::Prowl->new(apikey => $config{apikey});
 
         if ($prowl->verify) {
             Irssi::signal_add('print text' => 'print_text_handler');
@@ -84,10 +87,8 @@ sub print_text_handler {
     my $target = $dest->{target};
 
     if ($level & MSGLEVEL_MSGS) {
-#        Irssi::print("msg: $stripped", MSGLEVEL_CLIENTCRAP & MSGLEVEL_NOHILIGHT);
         prowl("Private Message from $target", $stripped) if $server->{usermode_away};
     } elsif ($level & MSGLEVEL_HILIGHT && !($level & MSGLEVEL_NOHILIGHT)) {
-#        Irssi::print("hilight: $stripped", MSGLEVEL_CLIENTCRAP & MSGLEVEL_NOHILIGHT);
         prowl("Hilighted in $target", $stripped) if $server->{usermode_away};
     }
 }
@@ -128,6 +129,11 @@ sub prowl {
         my %options = (application => 'Irssi', event => $event, description => $description);
         $options{priority} = $priority if defined $priority;
         $options{url} = $url if defined $url;
+
+        if ($config{debug}) {
+            my $debuginfo = join(', ', map { "$_ => '$options{$_}'" } sort keys %options);
+            Irssi::print("Sending Prowl notication: $debuginfo", MSGLEVEL_CLIENTCRAP);
+        }
         $prowl->add(%options);
     } else {
         Irssi::print('Invalid Prowl API key, use \'/set prowl_apikey\' to set a valid key',
