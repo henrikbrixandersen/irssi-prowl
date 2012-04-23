@@ -29,16 +29,14 @@ use Irssi;
 use WebService::Prowl;
 
 # TODO:
-# - manual prowl command with automatic URL detection
 # - customizable prowl levels
 # - customizable URL support
 # - on/off/auto support
 # - async $prowl->verify -- example at https://github.com/shabble/irssi-scripts/blob/master/feature-tests/pipes.pl
 # - $prowl->add return value check
-# - respond to /help prowl -- example at https://github.com/shabble/irssi-docs/wiki/Guide
 # - theme support for prowl event strings
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 our %IRSSI = (
     authors     => 'Henrik Brix Andersen',
     contact     => 'henrik@brixandersen.dk',
@@ -50,9 +48,17 @@ our %IRSSI = (
 
 my $prowl;
 
+# Settings
 Irssi::settings_add_str('prowl', 'prowl_apikey', '');
+
+# Signals
 Irssi::signal_add('setup changed' => 'setup_changed_handler');
 setup_changed_handler();
+
+# Commands
+Irssi::command_bind('help', 'help_command_handler');
+Irssi::command_bind('prowl', 'prowl_command_handler');
+Irssi::command_set_options('prowl', '-url @priority');
 
 sub setup_changed_handler {
     my $apikey = Irssi::settings_get_str('prowl_apikey');
@@ -86,11 +92,43 @@ sub print_text_handler {
     }
 }
 
+sub help_command_handler {
+    my ($data, $server, $witem) = @_;
+    $data =~ s/\s+$//g;
+
+    if (lc($data) eq 'prowl') {
+        Irssi::print("\nPROWL [-url <url>] [-priority <priority>] <text>\n\n" .
+                     "Send a manual Prowl notification.\n",
+                     MSGLEVEL_CLIENTCRAP);
+        Irssi::signal_stop;
+    }
+}
+
+sub prowl_command_handler {
+    my ($data, $server, $witem) = @_;
+    my @options = Irssi::command_parse_options('prowl', $data);
+
+    if (@options) {
+        my $args = $options[0];
+        my $text = $options[1];
+
+        if ($text) {
+            prowl('Manual Message', $text, $args->{priority}, $args->{url});
+        } else {
+            Irssi::print('Missing text argument, see \'/help prowl\' for usage',
+                         MSGLEVEL_CLIENTERROR);
+        }
+    }
+}
+
 sub prowl {
-    my ($event, $description) = @_;
+    my ($event, $description, $priority, $url) = @_;
 
     if ($prowl) {
-        $prowl->add(application => 'Irssi', event => $event, description => $description);
+        my %options = (application => 'Irssi', event => $event, description => $description);
+        $options{priority} = $priority if defined $priority;
+        $options{url} = $url if defined $url;
+        $prowl->add(%options);
     } else {
         Irssi::print('Invalid Prowl API key, use \'/set prowl_apikey\' to set a valid key',
                      MSGLEVEL_CLIENTERROR);
