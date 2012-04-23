@@ -8,6 +8,7 @@
 * Notifications on all hilights when away
 * Notifications on private messages when away
 * Notifications on private actions (``/me``) when away
+* Manual notifications using ``/prowl [-url <url>] [-priority <priority>] <text>``
 
 ## Installing
 
