@@ -9,7 +9,7 @@
 * Notifications on private messages when away
 * Notifications on private actions (``/me``) when away
 * Manual notifications using the ``/prowl`` command
-* Customizable Prowl notification priority levels
+* Customizable priority levels for Prowl notification
 
 ## Installing
 
