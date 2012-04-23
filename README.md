@@ -9,7 +9,7 @@
 * Notifications on private messages when away
 * Notifications on private actions (``/me``) when away
 * Manual notifications using the ``/prowl`` command
-* Customizable Prowl priority levels
+* Customizable Prowl notification priority levels
 
 ## Installing
 
@@ -51,7 +51,7 @@ command, use the following settings:
     /set prowl_priority_hilight 0
     /set prowl_priority_cmd -2
 
-To assist in debugging, turn on the following setting:
+To assist in debugging, turn on the ``prowl_debug`` setting:
 
     /set prowl_debug on
 
