@@ -33,6 +33,14 @@ To activate the script, run the following commands in Irssi:
     /set prowl_apikey 0123456789abcdef0123456789abcdef01234567
     /save
 
+You can manually send Prowl notifications using the following command:
+
+    /prowl [-url <url>] [-priority <priority>] <text>
+
+To assist in debugging, turn on the following setting:
+
+    /set prowl_debug on
+
 ## License
 
 This script is licensed under the 2-clause BSD license. See the script
