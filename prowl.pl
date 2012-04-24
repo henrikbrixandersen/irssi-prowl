@@ -29,7 +29,8 @@ use Irssi;
 use WebService::Prowl;
 
 # TODO:
-# - customizable URL support
+# - IRC URL support
+# - priority verification
 # - on/off/auto support
 # - async $prowl->verify -- example at https://github.com/shabble/irssi-scripts/blob/master/feature-tests/pipes.pl
 # - theme support for prowl event strings
@@ -44,7 +45,7 @@ our %IRSSI = (
     url         => 'https://raw.github.com/henrikbrixandersen/irssi-prowl/master/prowl.pl',
     );
 
-my $prowl = WebService::Prowl->new;;
+my $prowl;
 my %config = ( apikey => '' );
 
 # Settings
@@ -75,7 +76,7 @@ sub setup_changed_handler {
         if ($apikey ne $config{apikey}) {
             $prowl = WebService::Prowl->new(apikey => $apikey);
             if (!$prowl->verify) {
-                Irssi::print('Invalid Prowl API key, use \'/set prowl_apikey\' to set a valid key',
+                Irssi::print('Could not verify Prowl API key: ' . $prowl->error,
                              MSGLEVEL_CLIENTERROR);
             }
         }
