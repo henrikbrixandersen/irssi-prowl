@@ -107,7 +107,8 @@ sub help_command_handler {
 
     if (lc($data) eq 'prowl') {
         Irssi::print("\nPROWL [-url <url>] [-priority <priority>] <text>\n\n" .
-                     "Send a manual Prowl notification.\n",
+                     "Send a manual Prowl notification.\n\n" .
+                     "See also: /SET PROWL\n",
                      MSGLEVEL_CLIENTCRAP);
         Irssi::signal_stop;
     }
