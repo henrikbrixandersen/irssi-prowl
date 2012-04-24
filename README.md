@@ -11,7 +11,7 @@
 * Manual notifications using the ``/prowl`` command
 * Customizable priority levels for Prowl notifications
 
-## Installing
+## Installation
 
 This script depends on
 [WebService::Prowl](http://search.cpan.org/dist/WebService-Prowl/). To
