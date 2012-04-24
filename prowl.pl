@@ -32,17 +32,20 @@ use WebService::Prowl;
 # - IRC URL support
 # - priority verification
 # - on/off/auto support
+# - include/exclude channels regex
 # - async $prowl->verify -- example at https://github.com/shabble/irssi-scripts/blob/master/feature-tests/pipes.pl
 # - theme support for prowl event strings
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 our %IRSSI = (
     authors     => 'Henrik Brix Andersen',
     contact     => 'henrik@brixandersen.dk',
     name        => 'prowl',
     description => 'Send Prowl notifications from Irssi',
-    license     => '2-clause BSD',
-    url         => 'https://raw.github.com/henrikbrixandersen/irssi-prowl/master/prowl.pl',
+    license     => 'BSD',
+    url         => 'https://github.com/henrikbrixandersen/irssi-prowl',
+    modules     => 'WebService::Prowl',
+    commands    => 'prowl',
     );
 
 my $prowl;
@@ -106,7 +109,7 @@ sub help_command_handler {
     $data =~ s/\s+$//g;
 
     if (lc($data) eq 'prowl') {
-        Irssi::print("\nPROWL [-url <url>] [-priority <priority>] <text>\n\n" .
+        Irssi::print("\nPROWL [-url <url>] [-priority <priority>] [text]\n\n" .
                      "Send a manual Prowl notification.\n\n" .
                      "See also: /SET PROWL\n",
                      MSGLEVEL_CLIENTCRAP);
@@ -116,20 +119,16 @@ sub help_command_handler {
 
 sub prowl_command_handler {
     my ($data, $server, $witem) = @_;
-    my @options = Irssi::command_parse_options('prowl', $data);
+    $data =~ s/\s+$//g;
 
+    my @options = Irssi::command_parse_options('prowl', $data);
     if (@options) {
         my $args = $options[0];
         my $text = $options[1];
 
         $args->{priority} = $config{priority_cmd} unless exists $args->{priority};
-
-        if ($text) {
-            prowl('Manual Message', $text, $args->{priority}, $args->{url});
-        } else {
-            Irssi::print('Missing text argument, see \'/help prowl\' for usage',
-                         MSGLEVEL_CLIENTERROR);
-        }
+        $text = ' ' unless $text;
+        prowl('Manual Message', $text, $args->{priority}, $args->{url});
     }
 }
 
@@ -142,7 +141,7 @@ sub prowl {
 
     if ($config{debug}) {
         my $debuginfo = join(', ', map { "$_ => '$options{$_}'" } sort keys %options);
-        Irssi::print("Sending Prowl notication: $debuginfo", MSGLEVEL_CLIENTCRAP);
+        Irssi::print("Sending Prowl notification: $debuginfo", MSGLEVEL_CLIENTCRAP);
     }
 
     if ($config{apikey}) {
