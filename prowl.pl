@@ -30,7 +30,6 @@ use WebService::Prowl;
 
 # TODO:
 # - IRC URL support
-# - priority verification
 # - on/off/auto support
 # - include/exclude channels regex
 # - async $prowl->verify -- example at https://github.com/shabble/irssi-scripts/blob/master/feature-tests/pipes.pl
@@ -70,9 +69,17 @@ Irssi::command_set_options('prowl', '-url @priority');
 
 sub setup_changed_handler {
     $config{debug} = Irssi::settings_get_bool('prowl_debug');
-    $config{priority_msgs} = Irssi::settings_get_int('prowl_priority_msgs');
-    $config{priority_hilight} = Irssi::settings_get_int('prowl_priority_hilight');
-    $config{priority_cmd} = Irssi::settings_get_int('prowl_priority_cmd');
+
+    for (qw/msgs hilight cmd/) {
+        my $priority = Irssi::settings_get_int("prowl_priority_$_");
+        if ($priority < -2 || $priority > 2) {
+            $priority = -2 if ($priority < -2);
+            $priority = 2 if ($priority > 2);
+            Irssi::settings_set_int("prowl_priority_$_", $priority);
+            Irssi::signal_emit('setup changed');
+        }
+        $config{"priority_$_"} = $priority;
+    }
 
     my $apikey = Irssi::settings_get_str('prowl_apikey');
     if ($apikey) {
@@ -127,6 +134,8 @@ sub prowl_command_handler {
         my $text = $options[1];
 
         $args->{priority} = $config{priority_cmd} unless exists $args->{priority};
+        $args->{priority} = -2 if ($args->{priority} < -2);
+        $args->{priority} = 2 if ($args->{priority} > 2);
         $text = ' ' unless $text;
         prowl('Manual Message', $text, $args->{priority}, $args->{url});
     }
