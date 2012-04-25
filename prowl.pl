@@ -35,7 +35,7 @@ use WebService::Prowl;
 # - async $prowl->verify -- example at https://github.com/shabble/irssi-scripts/blob/master/feature-tests/pipes.pl
 # - theme support for prowl event strings
 
-our $VERSION = '1.4';
+our $VERSION = '1.5';
 our %IRSSI = (
     authors     => 'Henrik Brix Andersen',
     contact     => 'henrik@brixandersen.dk',
