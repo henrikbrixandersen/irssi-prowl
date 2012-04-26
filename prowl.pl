@@ -29,11 +29,9 @@ use Irssi;
 use WebService::Prowl;
 
 # TODO:
-# - IRC URL support
 # - on/off/auto support
 # - include/exclude channels regex
 # - async $prowl->verify -- example at https://github.com/shabble/irssi-scripts/blob/master/feature-tests/pipes.pl
-# - theme support for prowl event strings
 
 our $VERSION = '1.5';
 our %IRSSI = (
@@ -67,6 +65,15 @@ Irssi::command_bind('help', 'help_command_handler');
 Irssi::command_bind('prowl', 'prowl_command_handler');
 Irssi::command_set_options('prowl', '-url @priority');
 
+# Theme
+Irssi::theme_register([
+    'prowl_event_msgs',    'Private Message from $0',
+    'prowl_event_hilight', 'Hilighted in $0',
+    'prowl_event_cmd',     'Manual Message',
+    'prowl_url_msgs',      '$0://$1:$3/',
+    'prowl_url_hilight',   '$0://$1:$3/$4',
+                      ]);
+
 sub setup_changed_handler {
     $config{debug} = Irssi::settings_get_bool('prowl_debug');
 
@@ -96,18 +103,40 @@ sub setup_changed_handler {
     $config{apikey} = $apikey;
 }
 
+sub _create_url {
+    my ($server, $target, $format_name) = @_;
+    my $url;
+
+    if ($server->{chat_type} eq 'IRC') {
+        my $format = Irssi::current_theme()->get_format('Irssi::Script::prowl', $format_name);
+
+        my $data = ($server->{use_ssl} ? 'ircs' : 'irc'); # $0 = irc/ircs
+        $data .= ' ' . $server->{address};                # $1 = server address
+        $data .= ' ' . $server->{chatnet};                # $2 = chatnet
+        $data .= ' ' . $server->{port};                   # $3 = server port
+        $data .= ' ' . $target;                           # $4 = channel/nick
+
+        $url = Irssi::parse_special($format, $data);
+    }
+
+    return $url;
+}
+
 sub print_text_handler {
     my ($dest, $text, $stripped) = @_;
     my $server = $dest->{server};
     my $level = $dest->{level};
-    my $target = $dest->{target};
 
-    if ($level & MSGLEVEL_MSGS) {
-        prowl("Private Message from $target", $stripped, $config{priority_msgs})
-            if $server->{usermode_away};
-    } elsif ($level & MSGLEVEL_HILIGHT && !($level & MSGLEVEL_NOHILIGHT)) {
-        prowl("Hilighted in $target", $stripped, $config{priority_hilight})
-            if $server->{usermode_away};
+    if ($server->{usermode_away}) {
+        if (($level & MSGLEVEL_MSGS) || ($level & MSGLEVEL_HILIGHT && !($level & MSGLEVEL_NOHILIGHT))) {
+            my $target = $dest->{target};
+            my $type = ($level & MSGLEVEL_MSGS) ? 'msgs' : 'hilight';
+            my $url = _create_url($server, $target, "prowl_url_$type");
+            my $format = Irssi::current_theme()->get_format('Irssi::Script::prowl', "prowl_event_$type");
+            my $event = Irssi::parse_special($format, $target); # $0 = channel/nick
+
+            _prowl($event, $stripped, $config{priority_msgs}, $url);
+        }
     }
 }
 
@@ -118,7 +147,7 @@ sub help_command_handler {
     if (lc($data) eq 'prowl') {
         Irssi::print("\nPROWL [-url <url>] [-priority <priority>] [text]\n\n" .
                      "Send a manual Prowl notification.\n\n" .
-                     "See also: /SET PROWL\n",
+                     "See also: /SET PROWL, /FORMAT PROWL\n",
                      MSGLEVEL_CLIENTCRAP);
         Irssi::signal_stop;
     }
@@ -133,15 +162,18 @@ sub prowl_command_handler {
         my $args = $options[0];
         my $text = $options[1];
 
+        my $format = Irssi::current_theme()->get_format('Irssi::Script::prowl', 'prowl_event_cmd');
+        my $event = Irssi::parse_special($format);
+
         $args->{priority} = $config{priority_cmd} unless exists $args->{priority};
         $args->{priority} = -2 if ($args->{priority} < -2);
         $args->{priority} = 2 if ($args->{priority} > 2);
         $text = ' ' unless $text;
-        prowl('Manual Message', $text, $args->{priority}, $args->{url});
+        _prowl($event, $text, $args->{priority}, $args->{url});
     }
 }
 
-sub prowl {
+sub _prowl {
     my ($event, $description, $priority, $url) = @_;
 
     my %options = (application => 'Irssi', event => $event, description => $description);
