@@ -5,9 +5,10 @@
 
 ## Features
 
-* Notifications on all hilights when away
-* Notifications on private messages when away
-* Notifications on private actions (``/me``) when away
+* Notifications on all hilights
+* Notifications on private messages
+* Notifications on private actions (``/me``)
+* Setting for always sending notifications, never sending notifications or only sending notifications when Irssi is marked as being away (default)
 * Manual notifications using the ``/prowl`` command
 * Customizable priority levels for Prowl notifications
 * Customizable IRC URLs for Prowl notifications
@@ -15,7 +16,6 @@
 
 ## Planned Features
 
-* On/off/auto setting
 * Include/exclude channel/nick regular expressions setting
 
 ## Installation
@@ -63,6 +63,18 @@ command, use the following settings:
     /set prowl_priority_hilight 0
     /set prowl_priority_cmd -2
     /save
+
+By default, Prowl notifications for private messages and hilights are
+only sent when Irssi is marked as being away. This can be changed
+using the following setting:
+
+    /set prowl_mode ON
+    /set prowl_mode OFF
+    /set prowl_mode AUTO
+
+``ON`` will always send Prowl notifications, ``OFF`` will turn off all
+Prowl notifications except for the ``/prowl`` command and ``AUTO``
+will send Prowl notifications when Irssi is marked as being away.
 
 To assist in debugging, turn on the ``prowl_debug`` setting:
 
