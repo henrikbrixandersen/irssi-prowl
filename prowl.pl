@@ -33,7 +33,7 @@ use WebService::Prowl;
 # - include/exclude channels regex
 # - async $prowl->verify -- example at https://github.com/shabble/irssi-scripts/blob/master/feature-tests/pipes.pl
 
-our $VERSION = '1.6';
+our $VERSION = '1.7';
 our %IRSSI = (
     authors     => 'Henrik Brix Andersen',
     contact     => 'henrik@brixandersen.dk',
