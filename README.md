@@ -13,6 +13,11 @@
 * Customizable IRC URLs for Prowl notifications
 * Customizable event strings for Prowl notifications
 
+## Planned Features
+
+* On/off/auto setting
+* Include/exclude channel/nick regular expressions setting
+
 ## Installation
 
 This script depends on the
