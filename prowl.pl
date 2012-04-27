@@ -142,9 +142,10 @@ sub _create_url {
 sub print_text_handler {
     my ($dest, $text, $stripped) = @_;
     my $server = $dest->{server};
-    my $level = $dest->{level};
 
     if (($server->{usermode_away} && $config{mode} eq 'AUTO') || $config{mode} eq 'ON') {
+        my $level = $dest->{level};
+
         if (($level & MSGLEVEL_MSGS) || ($level & MSGLEVEL_HILIGHT && !($level & MSGLEVEL_NOHILIGHT))) {
             my $target = $dest->{target};
             my $type = ($level & MSGLEVEL_MSGS) ? 'msgs' : 'hilight';
@@ -215,7 +216,7 @@ sub _prowl {
     if ($config{apikey}) {
         Irssi::print('Error sending Prowl notificaton: ' . $prowl->error) unless $prowl->add(%options);
     } else {
-        Irssi::print('Prowl API key not set, use \'/set prowl_apikey\' to set a valid key',
+        Irssi::print('Prowl API key not set, use \'/SET prowl_apikey\' to set a valid key',
                      MSGLEVEL_CLIENTERROR);
     }
 }
