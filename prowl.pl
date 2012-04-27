@@ -29,7 +29,7 @@ use Irssi;
 use WebService::Prowl;
 
 # TODO:
-# - on/off/auto support
+# - tab completion for priority levels
 # - include/exclude channels regex
 # - async $prowl->verify -- example at https://github.com/shabble/irssi-scripts/blob/master/feature-tests/pipes.pl
 
@@ -49,6 +49,7 @@ my $prowl;
 my %config = ( apikey => '' );
 
 # Settings
+Irssi::settings_add_str('prowl', 'prowl_mode', 'AUTO');
 Irssi::settings_add_str('prowl', 'prowl_apikey', '');
 Irssi::settings_add_bool('prowl', 'prowl_debug', 0);
 Irssi::settings_add_int('prowl', 'prowl_priority_msgs', 0);
@@ -59,6 +60,7 @@ Irssi::settings_add_int('prowl', 'prowl_priority_cmd', 0);
 Irssi::signal_add('setup changed' => 'setup_changed_handler');
 setup_changed_handler();
 Irssi::signal_add('print text' => 'print_text_handler');
+Irssi::signal_add_first('complete word',  'complete_word_handler');
 
 # Commands
 Irssi::command_bind('help', 'help_command_handler');
@@ -77,6 +79,20 @@ Irssi::theme_register([
 sub setup_changed_handler {
     $config{debug} = Irssi::settings_get_bool('prowl_debug');
 
+    $config{mode} = Irssi::settings_get_str('prowl_mode');
+    $config{mode} =~ s/\s+$//g;
+    if ($config{mode} ne uc($config{mode})) {
+        # Mimic uppercase Irssi bool settings for our tri-state setting
+        $config{mode} = uc($config{mode});
+        Irssi::settings_set_str('prowl_mode', $config{mode});
+        Irssi::signal_emit('setup changed');
+    }
+    if ($config{mode} !~ /^(AUTO|ON|OFF)$/) {
+        $config{mode} = 'AUTO';
+        Irssi::settings_set_str('prowl_mode', $config{mode});
+        Irssi::signal_emit('setup changed');
+    }
+
     for (qw/msgs hilight cmd/) {
         my $priority = Irssi::settings_get_int("prowl_priority_$_");
         if ($priority < -2 || $priority > 2) {
@@ -89,6 +105,7 @@ sub setup_changed_handler {
     }
 
     my $apikey = Irssi::settings_get_str('prowl_apikey');
+    $apikey =~ s/\s+$//g;
     if ($apikey) {
         if ($apikey ne $config{apikey}) {
             $prowl = WebService::Prowl->new(apikey => $apikey);
@@ -127,7 +144,7 @@ sub print_text_handler {
     my $server = $dest->{server};
     my $level = $dest->{level};
 
-    if ($server->{usermode_away}) {
+    if (($server->{usermode_away} && $config{mode} eq 'AUTO') || $config{mode} eq 'ON') {
         if (($level & MSGLEVEL_MSGS) || ($level & MSGLEVEL_HILIGHT && !($level & MSGLEVEL_NOHILIGHT))) {
             my $target = $dest->{target};
             my $type = ($level & MSGLEVEL_MSGS) ? 'msgs' : 'hilight';
@@ -170,6 +187,16 @@ sub prowl_command_handler {
         $args->{priority} = 2 if ($args->{priority} > 2);
         $text = ' ' unless $text;
         _prowl($event, $text, $args->{priority}, $args->{url});
+    }
+}
+
+sub complete_word_handler {
+    my ($strings, $window, $word, $linestart, $want_space) = @_;
+
+    if ($linestart =~ /^\/set prowl_mode/i) {
+        map { push @$strings, $_ if ($_ =~ /^\Q$word\E/i) } qw/AUTO ON OFF/;;
+        $$want_space = 0;
+        Irssi::signal_stop;
     }
 }
 
