@@ -152,7 +152,7 @@ sub print_text_handler {
             my $format = Irssi::current_theme()->get_format('Irssi::Script::prowl', "prowl_event_$type");
             my $event = Irssi::parse_special($format, $target); # $0 = channel/nick
 
-            _prowl($event, $stripped, $config{priority_msgs}, $url);
+            _prowl($event, $stripped, $config{"priority_$type"}, $url);
         }
     }
 }
