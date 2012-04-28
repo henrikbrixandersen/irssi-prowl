@@ -68,9 +68,11 @@ Irssi::command_set_options('prowl', '-url @priority');
 
 # Theme
 Irssi::theme_register([
+    'prowl_event_cmd',     'Manual Message',
+    # $0 = channel/nick
     'prowl_event_msgs',    'Private Message from $0',
     'prowl_event_hilight', 'Hilighted in $0',
-    'prowl_event_cmd',     'Manual Message',
+    # $0 = irc/ircs, $1 = server address, $2 = chatnet, $3 = server port, $4 = channel/nick
     'prowl_url_msgs',      '$0://$1:$3/',
     'prowl_url_hilight',   '$0://$1:$3/$4',
                       ]);
@@ -127,7 +129,6 @@ sub _create_url {
         my $format = Irssi::current_theme()->get_format('Irssi::Script::prowl', $format_name);
 
         my @data;
-        # $0 = irc/ircs, $1 = server address, $2 = chatnet, $3 = server port, $4 = channel/nick
         push @data, $server->{use_ssl} ? 'ircs' : 'irc';
         push @data, ($server->{address}, $server->{chatnet}, $server->{port}, $target);
 
@@ -149,7 +150,7 @@ sub print_text_handler {
             my $type = ($level & MSGLEVEL_MSGS) ? 'msgs' : 'hilight';
             my $url = _create_url($server, $target, "prowl_url_$type");
             my $format = Irssi::current_theme()->get_format('Irssi::Script::prowl', "prowl_event_$type");
-            my $event = Irssi::parse_special($format, $target); # $0 = channel/nick
+            my $event = Irssi::parse_special($format, $target);
 
             _prowl($event, $stripped, $config{"priority_$type"}, $url);
         }
