@@ -194,7 +194,7 @@ sub complete_word_handler {
     my ($strings, $window, $word, $linestart, $want_space) = @_;
 
     if ($linestart =~ /^\/set prowl_mode/i) {
-        map { push @$strings, $_ if ($_ =~ /^\Q$word\E/i) } qw/AUTO ON OFF/;;
+        push @$strings, grep(/^\Q$word\E/i, qw/AUTO ON OFF/);
         $$want_space = 0;
         Irssi::signal_stop;
     }
