@@ -25,6 +25,8 @@
 use strict;
 use warnings;
 
+use List::Util qw/min max/;
+
 use Irssi;
 use WebService::Prowl;
 
@@ -40,7 +42,7 @@ our %IRSSI = (
     description => 'Send Prowl notifications from Irssi',
     license     => 'BSD',
     url         => 'https://github.com/henrikbrixandersen/irssi-prowl',
-    modules     => 'WebService::Prowl',
+    modules     => 'List::Util WebService::Prowl',
     commands    => 'prowl',
     );
 
@@ -97,8 +99,8 @@ sub setup_changed_handler {
     for (qw/msgs hilight cmd/) {
         my $priority = Irssi::settings_get_int("prowl_priority_$_");
         if ($priority < -2 || $priority > 2) {
-            $priority = -2 if ($priority < -2);
-            $priority = 2 if ($priority > 2);
+            $priority = max($priority, -2);
+            $priority = min($priority, 2);
             Irssi::settings_set_int("prowl_priority_$_", $priority);
             Irssi::signal_emit('setup changed');
         }
@@ -183,8 +185,8 @@ sub prowl_command_handler {
         my $event = Irssi::parse_special($format);
 
         $args->{priority} //= $config{priority_cmd};
-        $args->{priority} = -2 if ($args->{priority} < -2);
-        $args->{priority} = 2 if ($args->{priority} > 2);
+        $args->{priority} = max($args->{priority}, -2);
+        $args->{priority} = min($args->{priority}, 2);
 
         _prowl($event, $text, $args->{priority}, $args->{url});
     }
