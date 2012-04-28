@@ -1,7 +1,12 @@
 # irssi-prowl
 
-[Irssi](http://www.irssi.org/) script for sending
-[Prowl](http://www.prowlapp.com/) notifications.
+[Irssi](http://www.irssi.org/) script for sending [Prowl](http://www.prowlapp.com/) notifications.
+
+Why yet another Irssi-to-Prowl bridge, you ask?
+Well, basically because I was unhappy with the lack of features in all the existing bridges, I could find.
+
+The aim of this script is to be feature-rich while still being able to function out of the box for the casual user.
+Patches and feature requests are most welcome.
 
 ## Features
 
@@ -11,7 +16,7 @@
 * Setting for always sending notifications, never sending notifications or only sending notifications when Irssi is marked as being away (default)
 * Manual notifications using the ``/prowl`` command
 * Customizable priority levels for Prowl notifications
-* Customizable IRC URLs for Prowl notifications
+* Customizable IRC URLs for Prowl notifications (useful for quickly pointing your local iOS IRC client to the right server and channel)
 * Customizable event strings for Prowl notifications
 
 ## Planned Features
@@ -74,7 +79,7 @@ using the following setting:
 
 ``ON`` will always send Prowl notifications, ``OFF`` will turn off all
 Prowl notifications except for the ``/prowl`` command and ``AUTO``
-will send Prowl notifications when Irssi is marked as being away.
+will only send Prowl notifications when Irssi is marked as being away.
 
 To assist in debugging, turn on the ``prowl_debug`` setting:
 
