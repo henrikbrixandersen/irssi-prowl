@@ -176,15 +176,15 @@ sub prowl_command_handler {
     my @options = Irssi::command_parse_options('prowl', $data);
     if (@options) {
         my $args = $options[0];
-        my $text = $options[1];
+        my $text = $options[1] ? $options[1] : ' ';;
 
         my $format = Irssi::current_theme()->get_format('Irssi::Script::prowl', 'prowl_event_cmd');
         my $event = Irssi::parse_special($format);
 
-        $args->{priority} = $config{priority_cmd} unless exists $args->{priority};
+        $args->{priority} //= $config{priority_cmd};
         $args->{priority} = -2 if ($args->{priority} < -2);
         $args->{priority} = 2 if ($args->{priority} > 2);
-        $text = ' ' unless $text;
+
         _prowl($event, $text, $args->{priority}, $args->{url});
     }
 }
