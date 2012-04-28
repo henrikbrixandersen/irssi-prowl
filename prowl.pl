@@ -29,7 +29,6 @@ use Irssi;
 use WebService::Prowl;
 
 # TODO:
-# - tab completion for priority levels
 # - include/exclude channels regex
 # - async $prowl->verify -- example at https://github.com/shabble/irssi-scripts/blob/master/feature-tests/pipes.pl
 
