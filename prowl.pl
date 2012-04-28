@@ -82,19 +82,20 @@ Irssi::theme_register([
 sub setup_changed_handler {
     $config{debug} = Irssi::settings_get_bool('prowl_debug');
 
-    $config{mode} = Irssi::settings_get_str('prowl_mode');
-    $config{mode} =~ s/\s+$//g;
-    if ($config{mode} ne uc($config{mode})) {
+    my $mode = Irssi::settings_get_str('prowl_mode');
+    $mode =~ s/\s+$//g;
+    if ($mode ne uc($mode)) {
         # Mimic uppercase Irssi bool settings for our tri-state setting
-        $config{mode} = uc($config{mode});
-        Irssi::settings_set_str('prowl_mode', $config{mode});
+        $mode = uc($mode);
+        Irssi::settings_set_str('prowl_mode', $mode);
         Irssi::signal_emit('setup changed');
     }
-    if ($config{mode} !~ /^(AUTO|ON|OFF)$/) {
-        $config{mode} = 'AUTO';
-        Irssi::settings_set_str('prowl_mode', $config{mode});
+    if ($mode !~ /^(AUTO|ON|OFF)$/) {
+        $mode = 'AUTO';
+        Irssi::settings_set_str('prowl_mode', $mode);
         Irssi::signal_emit('setup changed');
     }
+    $config{mode} = $mode;
 
     for (qw/msgs hilight cmd/) {
         my $priority = Irssi::settings_get_int("prowl_priority_$_");
