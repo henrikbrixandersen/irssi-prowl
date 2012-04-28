@@ -126,13 +126,12 @@ sub _create_url {
     if ($server->{chat_type} eq 'IRC') {
         my $format = Irssi::current_theme()->get_format('Irssi::Script::prowl', $format_name);
 
-        my $data = ($server->{use_ssl} ? 'ircs' : 'irc'); # $0 = irc/ircs
-        $data .= ' ' . $server->{address};                # $1 = server address
-        $data .= ' ' . $server->{chatnet};                # $2 = chatnet
-        $data .= ' ' . $server->{port};                   # $3 = server port
-        $data .= ' ' . $target;                           # $4 = channel/nick
+        my @data;
+        # $0 = irc/ircs, $1 = server address, $2 = chatnet, $3 = server port, $4 = channel/nick
+        push @data, $server->{use_ssl} ? 'ircs' : 'irc';
+        push @data, ($server->{address}, $server->{chatnet}, $server->{port}, $target);
 
-        $url = Irssi::parse_special($format, $data);
+        $url = Irssi::parse_special($format, join(' ', @data));
     }
 
     return $url;
