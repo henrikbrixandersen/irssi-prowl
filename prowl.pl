@@ -30,10 +30,6 @@ use List::Util qw/min max/;
 use Irssi;
 use WebService::Prowl;
 
-# TODO:
-# - include/exclude channels regex
-# - async $prowl->verify -- example at https://github.com/shabble/irssi-scripts/blob/master/feature-tests/pipes.pl
-
 our $VERSION = '1.8';
 our %IRSSI = (
     authors     => 'Henrik Brix Andersen',
