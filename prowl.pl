@@ -52,6 +52,8 @@ Irssi::settings_add_bool('prowl', 'prowl_debug', 0);
 Irssi::settings_add_int('prowl', 'prowl_priority_msgs', 0);
 Irssi::settings_add_int('prowl', 'prowl_priority_hilight', 0);
 Irssi::settings_add_int('prowl', 'prowl_priority_cmd', 0);
+Irssi::settings_add_str('prowl', 'prowl_regex_include', '');
+Irssi::settings_add_str('prowl', 'prowl_regex_exclude', '');
 
 # Signals
 Irssi::signal_add('setup changed' => 'setup_changed_handler');
@@ -104,6 +106,16 @@ sub setup_changed_handler {
         $config{"priority_$_"} = $priority;
     }
 
+    for (qw/include exclude/) {
+        my $regex = Irssi::settings_get_str("prowl_regex_$_");
+        if ($regex) {
+            $config{$_} = eval { qr/$regex/ };
+            Irssi::print("Invalid regular expression for 'prowl_regex_$_' setting: $@") if $@;
+        } else {
+            $config{$_} = undef;
+        }
+    }
+
     my $apikey = Irssi::settings_get_str('prowl_apikey');
     $apikey =~ s/\s+$//g;
     if ($apikey) {
@@ -142,16 +154,20 @@ sub print_text_handler {
     my $server = $dest->{server};
 
     if (($server->{usermode_away} && $config{mode} eq 'AUTO') || $config{mode} eq 'ON') {
-        my $level = $dest->{level};
+        my $target = $dest->{target};
 
-        if (($level & MSGLEVEL_MSGS) || ($level & MSGLEVEL_HILIGHT && !($level & MSGLEVEL_NOHILIGHT))) {
-            my $target = $dest->{target};
-            my $type = ($level & MSGLEVEL_MSGS) ? 'msgs' : 'hilight';
-            my $url = _create_url($server, $target, "prowl_url_$type");
-            my $format = Irssi::current_theme()->get_format('Irssi::Script::prowl', "prowl_event_$type");
-            my $event = Irssi::parse_special($format, $target);
+        if ((!defined($config{include}) || $target =~ $config{include}) &&
+            !(defined($config{exclude}) && $target =~ $config{exclude})) {
+            my $level = $dest->{level};
 
-            _prowl($event, $stripped, $config{"priority_$type"}, $url);
+            if (($level & MSGLEVEL_MSGS) || ($level & MSGLEVEL_HILIGHT && !($level & MSGLEVEL_NOHILIGHT))) {
+                my $type = ($level & MSGLEVEL_MSGS) ? 'msgs' : 'hilight';
+                my $url = _create_url($server, $target, "prowl_url_$type");
+                my $format = Irssi::current_theme()->get_format('Irssi::Script::prowl', "prowl_event_$type");
+                my $event = Irssi::parse_special($format, $target);
+
+                _prowl($event, $stripped, $config{"priority_$type"}, $url);
+            }
         }
     }
 }
