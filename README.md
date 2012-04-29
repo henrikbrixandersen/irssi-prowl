@@ -10,18 +10,15 @@ Patches and feature requests are most welcome.
 
 ## Features
 
-* Notifications on all hilights
+* Notifications on hilights
 * Notifications on private messages
 * Notifications on private actions (``/me``)
 * Setting for always sending notifications, never sending notifications or only sending notifications when Irssi is marked as being away (default)
 * Manual notifications using the ``/prowl`` command
+* Regular expressions for including/excluding channels/nicks
 * Customizable priority levels for Prowl notifications
 * Customizable IRC URLs for Prowl notifications (useful for quickly pointing your local iOS IRC client to the right server and channel)
 * Customizable event strings for Prowl notifications
-
-## Planned Features
-
-* Include/exclude channel/nick regular expressions setting
 
 ## Installation
 
@@ -80,6 +77,12 @@ using the following setting:
 ``ON`` will always send Prowl notifications, ``OFF`` will turn off all
 Prowl notifications except for the ``/prowl`` command and ``AUTO``
 will only send Prowl notifications when Irssi is marked as being away.
+
+To limit which channels/nicks will send Prowl notifications, change
+the following regular expression settings:
+
+    /set prowl_regex_include ^#
+    /set prowl_regex_exclude ^#noise$
 
 To assist in debugging, turn on the ``prowl_debug`` setting:
 
