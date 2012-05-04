@@ -98,7 +98,8 @@ the ``/prowl`` command, use the following settings:
     /format prowl_event_cmd Remember
     /save
 
-For the first two, ``$0`` will be replaced with the respective nick or channel.
+For the first two, ``$0`` will be replaced with the respective channel
+and ``$1`` will be replaced with the nick.
 
 The format of the URLs passed to Prowl for private messages and
 hilights can be controlled with the following settings:

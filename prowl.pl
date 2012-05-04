@@ -69,9 +69,9 @@ Irssi::command_set_options('prowl', '-url @priority');
 # Theme
 Irssi::theme_register([
     'prowl_event_cmd',     'Manual Message',
-    # $0 = channel/nick
-    'prowl_event_msgs',    'Private Message from $0',
-    'prowl_event_hilight', 'Hilighted in $0',
+    # $0 = channel, $1 = nick
+    'prowl_event_msgs',    'Private Message from $1',
+    'prowl_event_hilight', 'Hilighted in $0 by $1',
     # $0 = irc/ircs, $1 = server address, $2 = chatnet, $3 = server port, $4 = channel/nick
     'prowl_url_msgs',      '$0://$1:$3/',
     'prowl_url_hilight',   '$0://$1:$3/$4',
@@ -161,12 +161,21 @@ sub print_text_handler {
             my $level = $dest->{level};
 
             if (($level & MSGLEVEL_MSGS) || ($level & MSGLEVEL_HILIGHT && !($level & MSGLEVEL_NOHILIGHT))) {
-                my $type = ($level & MSGLEVEL_MSGS) ? 'msgs' : 'hilight';
-                my $url = _create_url($server, $target, "prowl_url_$type");
-                my $format = Irssi::current_theme()->get_format('Irssi::Script::prowl', "prowl_event_$type");
-                my $event = Irssi::parse_special($format, $target);
+                my $nick = $stripped;
+                if ($level & MSGLEVEL_ACTIONS) {
+                    $nick =~ s/^\s+.\s+(\S+)\s.*/$1/;
+                } else {
+                    $nick =~ s/^\<[@\+% ]?([^\>]+)\>.*/$1/;
+                }
 
-                _prowl($event, $stripped, $config{"priority_$type"}, $url);
+                unless ($server->{nick} eq $nick) {
+                    my $type = ($level & MSGLEVEL_MSGS) ? 'msgs' : 'hilight';
+                    my $url = _create_url($server, $target, "prowl_url_$type");
+                    my $format = Irssi::current_theme()->get_format('Irssi::Script::prowl', "prowl_event_$type");
+                    my $event = Irssi::parse_special($format, "$target $nick");
+
+                    _prowl($event, $stripped, $config{"priority_$type"}, $url);
+                }
             }
         }
     }
