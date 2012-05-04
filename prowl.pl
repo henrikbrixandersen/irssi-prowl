@@ -30,7 +30,7 @@ use List::Util qw/min max/;
 use Irssi;
 use WebService::Prowl;
 
-our $VERSION = '1.9';
+our $VERSION = '1.10';
 our %IRSSI = (
     authors     => 'Henrik Brix Andersen',
     contact     => 'henrik@brixandersen.dk',
